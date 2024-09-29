@@ -15,6 +15,7 @@
         <module>zzy-order</module>
         <module>zzy-coupon</module>
         <module>zzy-member</module>
+        <module>renren-fast-master/renren-fast-master</module>
     </modules>
 
 
