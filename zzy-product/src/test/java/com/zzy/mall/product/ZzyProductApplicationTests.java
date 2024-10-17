@@ -60,7 +60,6 @@ public class ZzyProductApplicationTests {
         String endpoint = "https://oss-cn-wuhan-lr.aliyuncs.com";
 
         String accessKeyId = "LTAI5tBZcnJqZn4zqDGtiwkG";
-        String accessKeySecret = "zS2RNYlJpjs8tI0kQX3pkITZ3vwFx9";
 
         // 创建OSSClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId,accessKeySecret);*/
