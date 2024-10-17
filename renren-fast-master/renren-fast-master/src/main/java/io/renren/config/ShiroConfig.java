@@ -8,8 +8,8 @@
 
 package io.renren.config;
 
-import io.renren.modules.sys.jwt.JWTFilter;
-import io.renren.modules.sys.jwt.JWTRealm;
+import io.renren.modules.sys.oauth2.OAuth2Filter;
+import io.renren.modules.sys.oauth2.OAuth2Realm;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -32,9 +32,9 @@ import java.util.Map;
 public class ShiroConfig {
 
     @Bean("securityManager")
-    public SecurityManager securityManager(JWTRealm jwtRealm) {
+    public SecurityManager securityManager(OAuth2Realm oAuth2Realm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        securityManager.setRealm(jwtRealm);
+        securityManager.setRealm(oAuth2Realm);
         securityManager.setRememberMeManager(null);
         return securityManager;
     }
@@ -44,9 +44,9 @@ public class ShiroConfig {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
         shiroFilter.setSecurityManager(securityManager);
 
-        //jwt token过滤
+        //oauth过滤
         Map<String, Filter> filters = new HashMap<>();
-        filters.put("jwt", new JWTFilter());
+        filters.put("oauth2", new OAuth2Filter());
         shiroFilter.setFilters(filters);
 
         Map<String, String> filterMap = new LinkedHashMap<>();
@@ -60,7 +60,7 @@ public class ShiroConfig {
         filterMap.put("/swagger-resources/**", "anon");
         filterMap.put("/captcha.jpg", "anon");
         filterMap.put("/aaa.txt", "anon");
-        filterMap.put("/**", "jwt");
+        filterMap.put("/**", "oauth2");
         shiroFilter.setFilterChainDefinitionMap(filterMap);
 
         return shiroFilter;

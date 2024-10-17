@@ -1,0 +1,32 @@
+# 注册中心的配置
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.56.100:8848
+    gateway:
+      routes:
+        - id: product-route
+          uri: lb://zzy-product
+          predicates:
+            - Path=/app/product/**
+          filters:
+            - RewritePath=/app/(?<segment>/?.*),/$\{segment}
+        - id: third-route
+          uri: lb://zzy-third
+          predicates:
+            - Path=/app/third/**
+          filters:
+            - RewritePath=/app/third/(?<segment>/?.*),/$\{segment}
+        - id: app-route
+          uri: lb://renren-fast
+          predicates:
+            - Path=/app/**
+          filters:
+            - RewritePath=/app/(?<segment>/?.*),/renren-fast/$\{segment}
+          # localhost:8070/app/captcha.jpg --> localhost:8080/app/captcha.ipg --> localhost:8080/renren-fast/captcha.ipg
+  application:
+    name: zzy-gateway
+
+server:
+  port: 8070

@@ -16,6 +16,10 @@
         <module>zzy-coupon</module>
         <module>zzy-member</module>
         <module>renren-fast-master/renren-fast-master</module>
+        <module>renren-generator-master</module>
+        <module>zzy-commons</module>
+        <module>zzy-gateway</module>
+        <module>zzy-third-party</module>
     </modules>
 
 
