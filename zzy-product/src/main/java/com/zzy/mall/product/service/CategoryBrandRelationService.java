@@ -2,7 +2,6 @@ package com.zzy.mall.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzy.mall.common.utils.PageUtils;
-import com.zzy.mall.product.entity.BrandEntity;
 import com.zzy.mall.product.entity.CategoryBrandRelationEntity;
 
 import java.util.List;
@@ -25,6 +24,6 @@ public interface CategoryBrandRelationService extends IService<CategoryBrandRela
 
     void updateCatelogName(Long catId, String name);
 
-    List<BrandEntity> categoryBrandRelation(Long catId);
+    List<CategoryBrandRelationEntity> categoryBrandRelation(Long catId);
 }
 

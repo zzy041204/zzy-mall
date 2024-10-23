@@ -1,5 +1,6 @@
 package com.zzy.mall.product.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -21,8 +22,9 @@ public class SpuInfoDescEntity implements Serializable {
 
 	/**
 	 * 商品id
+	 * 如果这种主键不是自增的，那么我们需要设置这个字段的类型为IdType.INPUT
 	 */
-	@TableId
+	@TableId(type = IdType.INPUT)
 	private Long spuId;
 	/**
 	 * 商品介绍

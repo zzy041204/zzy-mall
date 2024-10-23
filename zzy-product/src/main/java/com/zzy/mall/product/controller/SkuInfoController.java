@@ -83,7 +83,6 @@ public class SkuInfoController {
     //@RequiresPermissions("product:skuinfo:delete")
     public R delete(@RequestBody Long[] skuIds){
 		skuInfoService.removeByIds(Arrays.asList(skuIds));
-
         return R.ok();
     }
 

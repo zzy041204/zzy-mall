@@ -43,9 +43,9 @@ public class CategoryBrandRelationController {
         return R.ok().put("data", list);
     }
 
-    @GetMapping("/categorybrandrelation/brands/list")
-    public R categoryBrandRelation(@RequestParam(value = "catId",required = true) Long catId){
-        List<BrandEntity> list = categoryBrandRelationService.categoryBrandRelation(catId);
+    @GetMapping("/brands/list")
+    public R categoryBrandRelation(@RequestParam(value = "catId") Long catId){
+        List<CategoryBrandRelationEntity> list = categoryBrandRelationService.categoryBrandRelation(catId);
         return R.ok().put("data",list);
     }
 
@@ -104,5 +104,6 @@ public class CategoryBrandRelationController {
 
         return R.ok();
     }
+
 
 }

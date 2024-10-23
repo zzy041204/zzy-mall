@@ -6,9 +6,6 @@ spring:
     url: jdbc:mysql://192.168.56.100:3306/mall-pms
     driver-class-name: com.mysql.cj.jdbc.Driver
   cloud:
-    nacos:
-      discovery:
-        server-addr: 192.168.56.100:8848
     alicloud:
       access-key: LTAI5tBZcnJqZn4zqDGtiwkG
       secret-key: zS2RNYlJpjs8tI0kQX3pkITZ3vwFx9
