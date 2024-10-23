@@ -5,10 +5,6 @@ spring:
     password: root
     url: jdbc:mysql://192.168.56.100:3306/mall-ums
     driver-class-name: com.mysql.cj.jdbc.Driver
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 192.168.56.100:8848
   application:
     name: zzy-member
 
