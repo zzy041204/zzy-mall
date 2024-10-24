@@ -1,15 +1,13 @@
 package com.zzy.mall.ware.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.zzy.mall.ware.vo.MergeVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.zzy.mall.ware.entity.PurchaseEntity;
 import com.zzy.mall.ware.service.PurchaseService;
@@ -31,6 +29,12 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
 
+    @PostMapping("/merge")
+    public R merge(@RequestBody MergeVO mergeVO) {
+        Integer flag = purchaseService.merge(mergeVO);
+        return R.ok().put("flag",flag);
+    }
+
     /**
      * 列表
      */
@@ -39,6 +43,12 @@ public class PurchaseController {
     public R list(@RequestParam Map<String, Object> params){
         PageUtils page = purchaseService.queryPage(params);
 
+        return R.ok().put("page", page);
+    }
+
+    @GetMapping("/unreceive/list")
+    public R ListUnReceive(@RequestParam Map<String, Object> params){
+        PageUtils page = purchaseService.queryPageUnReceive(params);
         return R.ok().put("page", page);
     }
 

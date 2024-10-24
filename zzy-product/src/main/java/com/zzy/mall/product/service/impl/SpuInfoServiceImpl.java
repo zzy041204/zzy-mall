@@ -13,7 +13,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -193,6 +192,9 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     public PageUtils queryPageByCondition(Map<String, Object> params) {
         QueryWrapper<SpuInfoEntity> wrapper = new QueryWrapper<>();
         String key = (String) params.get("key");
+        String catelogId = (String) params.get("catelogId");
+        String brandId = (String) params.get("brandId");
+        String status = (String) params.get("status");
         if (StringUtils.isNotBlank(key)) {
             wrapper.and( w -> {
                 w.eq("id",key).or().like("spu_name", key).or().like("spu_description", key);
@@ -200,19 +202,19 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         }
         IPage<SpuInfoEntity> page = this.page(
                 new Query<SpuInfoEntity>().getPage(params),
-                wrapper.eq(params.get("catelogId") != null && !params.get("catelogId").equals("0"),"catalog_id", params.get("catelogId"))
-                        .eq(params.get("brandId") != null && !params.get("brandId").equals("0"),"brand_id", params.get("brandId"))
-                        .eq(params.get("status") != null,"publish_status", params.get("status"))
+                wrapper.eq(catelogId !=null && !catelogId.equals("0"),"catalog_id", catelogId)
+                        .eq(brandId != null && !brandId.equals("0"),"brand_id", brandId)
+                        .eq(status != null,"publish_status", status)
         );
         //根据查询到的分页信息,在查询出对应的类别名称和品牌名称
         List<SpuInfoResponseVO> spuInfoResponseVOS = page.getRecords().stream().map(s -> {
             SpuInfoResponseVO spuInfoResponseVO = new SpuInfoResponseVO();
             BeanUtils.copyProperties(s, spuInfoResponseVO);
             Long catalogId = s.getCatalogId();
-            Long brandId = s.getBrandId();
+            Long brandId1 = s.getBrandId();
             CategoryEntity categoryEntity = categoryService.getById(catalogId);
             spuInfoResponseVO.setCatalogName(categoryEntity.getName());
-            BrandEntity brandEntity = brandService.getById(brandId);
+            BrandEntity brandEntity = brandService.getById(brandId1);
             spuInfoResponseVO.setBrandName(brandEntity.getName());
             return spuInfoResponseVO;
         }).collect(Collectors.toList());
