@@ -28,4 +28,5 @@ public class SpuInfoVO {
     private Bounds bounds;
     private List<BaseAttrs> baseAttrs;
     private List<Skus> skus;
+
 }

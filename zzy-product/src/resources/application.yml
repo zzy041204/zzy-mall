@@ -13,6 +13,10 @@ spring:
         endpoint: oss-cn-wuhan-lr.aliyuncs.com
   application:
     name: zzy-product
+  # 设置服务器响应给客户端的日期时间格式
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
