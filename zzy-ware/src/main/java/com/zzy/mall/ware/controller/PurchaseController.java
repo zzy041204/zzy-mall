@@ -6,6 +6,7 @@ import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.zzy.mall.ware.vo.MergeVO;
+import com.zzy.mall.ware.vo.PurchaseDoneVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,9 +30,43 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
 
+
+    /**
+     * 完成采购
+     * {
+     *     id:1, //采购单
+     *     items:[
+     *     {itemId:2,status:4,reason:""},
+     *     {itemId:3,status:3,reason:"}
+     *     ] //采购项
+     * }
+     */
+    @PostMapping("/done")
+    public R done(@RequestBody PurchaseDoneVO vo){
+        purchaseService.done(vo);
+        return R.ok();
+    }
+
+
+    // ware/purchase/receive
+    /**
+     * 领取采购单
+     * [1,2]
+     * @param ids
+     * @return
+     */
+    @PostMapping("/receive")
+    public R receive(@RequestBody List<Long> ids) {
+        purchaseService.received(ids);
+        return R.ok();
+    }
+
     @PostMapping("/merge")
     public R merge(@RequestBody MergeVO mergeVO) {
         Integer flag = purchaseService.merge(mergeVO);
+        if (flag == -1) {
+            return R.error("合并失败...该采购单不能被合并");
+        }
         return R.ok().put("flag",flag);
     }
 

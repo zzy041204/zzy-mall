@@ -5,11 +5,7 @@ import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.zzy.mall.product.entity.SkuInfoEntity;
 import com.zzy.mall.product.service.SkuInfoService;
@@ -52,6 +48,17 @@ public class SkuInfoController {
 		SkuInfoEntity skuInfo = skuInfoService.getById(skuId);
 
         return R.ok().put("skuInfo", skuInfo);
+    }
+
+    /**
+     * 根据skuId找到skuName
+     */
+    @PostMapping("/info")
+    //@RequiresPermissions("product:skuinfo:info")
+    public String infoNameById(@RequestBody Long skuId){
+        SkuInfoEntity skuInfo = skuInfoService.getById(skuId);
+
+        return skuInfo.getSkuName();
     }
 
     /**

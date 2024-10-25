@@ -6,7 +6,7 @@ package com.zzy.mall.common.constant;
 public class WareConstant {
 
     /**
-     * 采购单状态
+     * 采购项状态
      */
     public enum PurchaseDetailStatusEnum{
         CREATED(0,"新建"),
