@@ -1,9 +1,16 @@
 package com.zzy.mall.ware.service.impl;
 
+import com.zzy.mall.common.dto.SkuStockDTO;
 import com.zzy.mall.ware.feign.ProductFeignService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -53,6 +60,27 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             skuEntity.setStockLocked(0);
             this.save(skuEntity);
         }
+    }
+
+    @Override
+    public List<SkuStockDTO> HasStock(List<Long> skuIds) {
+        List<SkuStockDTO> list = skuIds.stream().map(skuId -> {
+            List<WareSkuEntity> wareSkuEntityList = this.list(new QueryWrapper<WareSkuEntity>().eq("sku_id", skuId));
+            Long sum = 0l;
+            for (WareSkuEntity wareSkuEntity : wareSkuEntityList) {
+                sum += (wareSkuEntity.getStock() - wareSkuEntity.getStockLocked());
+            }
+            SkuStockDTO skuStockDTO = new SkuStockDTO();
+            if (sum > 0) {
+                skuStockDTO.setSkuId(skuId);
+                skuStockDTO.setHasStock(true);
+            } else {
+                skuStockDTO.setSkuId(skuId);
+                skuStockDTO.setHasStock(false);
+            }
+            return skuStockDTO;
+        }).collect(Collectors.toList());
+        return list;
     }
 
 }

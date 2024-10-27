@@ -20,6 +20,7 @@
         <module>zzy-commons</module>
         <module>zzy-gateway</module>
         <module>zzy-third-party</module>
+        <module>zzy-search</module>
     </modules>
 
 

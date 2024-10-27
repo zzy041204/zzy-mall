@@ -1,11 +1,17 @@
 package com.zzy.mall.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.zzy.mall.common.constant.ProductConstant;
 import com.zzy.mall.common.dto.MemberPrice;
 import com.zzy.mall.common.dto.SkuReductionDTO;
+import com.zzy.mall.common.dto.SkuStockDTO;
 import com.zzy.mall.common.dto.SpuBoundsDTO;
+import com.zzy.mall.common.dto.es.SkuESModel;
 import com.zzy.mall.common.utils.R;
 import com.zzy.mall.product.entity.*;
 import com.zzy.mall.product.feign.CouponFeignService;
+import com.zzy.mall.product.feign.SearchFeignService;
+import com.zzy.mall.product.feign.WareFeignService;
 import com.zzy.mall.product.service.*;
 import com.zzy.mall.product.vo.*;
 import org.apache.commons.lang.StringUtils;
@@ -13,9 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -60,6 +64,12 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     BrandService brandService;
+
+    @Autowired
+    WareFeignService wareFeignService;
+
+    @Autowired
+    SearchFeignService searchFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -196,15 +206,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         String brandId = (String) params.get("brandId");
         String status = (String) params.get("status");
         if (StringUtils.isNotBlank(key)) {
-            wrapper.and( w -> {
-                w.eq("id",key).or().like("spu_name", key).or().like("spu_description", key);
+            wrapper.and(w -> {
+                w.eq("id", key).or().like("spu_name", key).or().like("spu_description", key);
             });
         }
         IPage<SpuInfoEntity> page = this.page(
                 new Query<SpuInfoEntity>().getPage(params),
-                wrapper.eq(catelogId !=null && !catelogId.equals("0"),"catalog_id", catelogId)
-                        .eq(brandId != null && !brandId.equals("0"),"brand_id", brandId)
-                        .eq(status != null,"publish_status", status)
+                wrapper.eq(catelogId != null && !catelogId.equals("0"), "catalog_id", catelogId)
+                        .eq(brandId != null && !brandId.equals("0"), "brand_id", brandId)
+                        .eq(status != null, "publish_status", status)
         );
         //根据查询到的分页信息,在查询出对应的类别名称和品牌名称
         List<SpuInfoResponseVO> spuInfoResponseVOS = page.getRecords().stream().map(s -> {
@@ -218,7 +228,111 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             spuInfoResponseVO.setBrandName(brandEntity.getName());
             return spuInfoResponseVO;
         }).collect(Collectors.toList());
-        return new PageUtils(spuInfoResponseVOS,(int)page.getTotal(),(int)page.getSize(),(int)page.getCurrent());
+        return new PageUtils(spuInfoResponseVOS, (int) page.getTotal(), (int) page.getSize(), (int) page.getCurrent());
+    }
+
+    /**
+     * 实现商品上架 商品相关数据存储到ElasticSearch中
+     * 1.根据spuId查询出相关的信息 封装到对应的对象中
+     * 2.将封装的对象存储到ElasticSearch中 调用zzy-search服务
+     * 3.更新spuId对应的状态
+     *
+     * @param spuId
+     */
+    @Transactional
+    @Override
+    public void up(Long spuId) {
+        //1.根据spuId查询出相关的信息 封装到SkuESModel对象中
+        List<SkuESModel> skuEs = new ArrayList<>();
+        List<SkuESModel.Attrs> attrs = getAttrs(spuId);
+        // 根据spuId找到相关sku信息
+        List<SkuInfoEntity> skuInfoEntityList = skuInfoService.list(new QueryWrapper<SkuInfoEntity>().eq("spu_id", spuId));
+        List<Long> skuIds = skuInfoEntityList.stream().map(skuInfoEntity -> skuInfoEntity.getSkuId()).collect(Collectors.toList());
+        Map<Long, Boolean> hasStockMap = getSkusHasStock(skuIds);
+        skuInfoEntityList.stream().forEach(skuInfoEntity -> {
+            SkuESModel skuESModel = new SkuESModel();
+            // spu相关信息
+            skuESModel.setSpuId(spuId);
+            // sku相关信息
+            skuESModel.setSkuId(skuInfoEntity.getSkuId());
+            skuESModel.setSkuPrice(skuInfoEntity.getPrice());
+            skuESModel.setSubTitle(skuInfoEntity.getSkuTitle());
+            skuESModel.setSkuImg(skuInfoEntity.getSkuDefaultImg());
+            skuESModel.setSaleCount(skuInfoEntity.getSaleCount());
+            //类别和品牌相关信息
+            CategoryEntity categoryEntity = categoryService.getById(skuInfoEntity.getCatalogId());
+            skuESModel.setCategoryId(categoryEntity.getCatId());
+            skuESModel.setCategoryName(categoryEntity.getName());
+            BrandEntity brandEntity = brandService.getById(skuInfoEntity.getBrandId());
+            skuESModel.setBrandId(brandEntity.getBrandId());
+            skuESModel.setBrandName(brandEntity.getName());
+            skuESModel.setBrandImg(brandEntity.getLogo());
+            // 规格参数相关信息
+            skuESModel.setAttrs(attrs);
+            // 库存相关信息
+            if (hasStockMap == null){
+                skuESModel.setHasStock(true);
+            }else {
+                skuESModel.setHasStock(hasStockMap.get(skuInfoEntity.getSkuId()));
+            }
+            // 热度分默认为0
+            skuESModel.setHotScore(0l);
+            skuEs.add(skuESModel);
+        });
+        // 2.将封装的对象存储到ElasticSearch中 调用zzy-search服务
+        R r = searchFeignService.productStatusUp(skuEs);
+        if (r.getCode() == 0) {
+            // 远程调用失败
+            // 3.更新spuId对应的状态
+            this.update(new UpdateWrapper<SpuInfoEntity>().set("publish_status", ProductConstant.StatusEnum.SPU_PU.getCode()).set("update_time",new Date()).eq("id", spuId));
+        }
+    }
+
+    /**
+     * 根据skuIds获取对应的库存状态
+     * @param skuIds
+     * @return
+     */
+    private Map<Long, Boolean> getSkusHasStock(List<Long> skuIds) {
+        List<SkuStockDTO> skuStockDTOS = null;
+        if (skuIds == null || skuIds.size() == 0) {
+            return null;
+        }
+        try {
+            skuStockDTOS = wareFeignService.HasStock(skuIds);
+            Map<Long, Boolean> map = skuStockDTOS.stream().collect(Collectors.toMap(item -> item.getSkuId()
+                    , item -> item.getHasStock()
+            ));
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 根据spuId获取对应的规格参数
+     *
+     * @param spuId
+     * @return
+     */
+    private List<SkuESModel.Attrs> getAttrs(Long spuId) {
+        // 规格参数列表
+        List<SkuESModel.Attrs> attrs = new ArrayList<>();
+        // product_attr_value 存储了对应的spu相关的所有规格参数
+        List<ProductAttrValueEntity> productAttrValueEntityList = productAttrValueService.list(new QueryWrapper<ProductAttrValueEntity>().eq("spu_id", spuId));
+        productAttrValueEntityList.stream().forEach(productAttrValueEntity -> {
+            Long attrId = productAttrValueEntity.getAttrId();
+            // attr search_type 决定了该属性是否支持检索
+            AttrEntity attrEntity = attrService.getById(attrId);
+            if (attrEntity != null && attrEntity.getSearchType() == 1) {
+                // 将可检索的属性添加到列表中
+                SkuESModel.Attrs attr = new SkuESModel.Attrs();
+                BeanUtils.copyProperties(productAttrValueEntity, attr);
+                attrs.add(attr);
+            }
+        });
+        return attrs;
     }
 
 }

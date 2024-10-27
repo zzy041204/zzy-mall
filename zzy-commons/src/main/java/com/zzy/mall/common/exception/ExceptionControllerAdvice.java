@@ -1,6 +1,5 @@
 package com.zzy.mall.common.exception;
 
-import com.zzy.mall.common.valid.groups.BizCodeEnume;
 import com.zzy.mall.common.utils.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;
