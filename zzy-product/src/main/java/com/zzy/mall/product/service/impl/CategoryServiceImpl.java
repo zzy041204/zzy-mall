@@ -1,6 +1,7 @@
 package com.zzy.mall.product.service.impl;
 
 import com.zzy.mall.product.service.CategoryBrandRelationService;
+import com.zzy.mall.product.vo.Catalog2VO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     /**
      * 查询所有的类别数据 将数据封装成树形结构 便于前端使用
+     *
      * @param params
      * @return
      */
@@ -53,7 +55,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         List<CategoryEntity> list = categoryEntities.stream().filter(categoryEntity -> categoryEntity.getParentCid() == 0)
                 .map(categoryEntity -> {
                     //根据大类找到所有的小类
-                    categoryEntity.setChildren(getCategoryChildren(categoryEntity,categoryEntities));
+                    categoryEntity.setChildren(getCategoryChildren(categoryEntity, categoryEntities));
                     return categoryEntity;
                 }).sorted((entity1, entity2) -> {
                     return (entity1.getSort() == null ? 0 : entity1.getSort()) - (entity2.getSort() == null ? 0 : entity2.getSort());
@@ -64,6 +66,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     /**
      * 逻辑批量删除
+     *
      * @param ids
      */
     @Override
@@ -87,17 +90,62 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public void updateDetail(CategoryEntity category) {
         // 更新类别名称
         this.updateById(category);
-        if (StringUtils.isNotBlank(category.getName())){
+        if (StringUtils.isNotBlank(category.getName())) {
             // 同步更新级联的数据
             Long catId = category.getCatId();
             String name = category.getName();
-            categoryBrandRelationService.updateCatelogName(catId,name);
+            categoryBrandRelationService.updateCatelogName(catId, name);
             // 同步更新其他冗余的数据
         }
     }
 
+    @Override
+    public List<CategoryEntity> getLevel1Category() {
+        List<CategoryEntity> list = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+        return list;
+    }
+
+    /**
+     * 查询出所有的二级和三级分类的数据
+     * 并封装为Map<String, Catalog2VO>对象
+     *
+     * @return
+     */
+    @Override
+    public Map<String, List<Catalog2VO>> getCatalog2JSON() {
+        // 获取所有一级分类的编号
+        List<CategoryEntity> level1Category = this.getLevel1Category();
+        // 把一级分类的数据转换为Map容器 key是一级分类的编号 value就是一级分类对应的二级分类
+        Map<String, List<Catalog2VO>> map = level1Category.stream().collect(Collectors.toMap(key -> key.getCatId().toString()
+                , value -> {
+                    List<Catalog2VO> catalog2VOS = null;
+                    List<CategoryEntity> catalog2List = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", value.getCatId()));
+                    if (catalog2List.size() > 0 && catalog2List != null) {
+                        List<Catalog2VO> catalog2VOList = catalog2List.stream().map(category2Entity -> {
+                            Catalog2VO catalog2VO = new Catalog2VO(value.getCatId().toString(), null, category2Entity.getCatId().toString(), category2Entity.getName());
+                            List<Catalog2VO.Catalog3VO> catalog3VOS = null;
+                            // 根据二级分类的ID 找到对应的三级分类信息
+                            List<CategoryEntity> catalog3List = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", category2Entity.getCatId()));
+                            if (catalog3List.size() > 0 && catalog3List != null) {
+                                List<Catalog2VO.Catalog3VO> collect = catalog3List.stream().map(category3Entity -> {
+                                    Catalog2VO.Catalog3VO catalog3VO = new Catalog2VO.Catalog3VO(category2Entity.getCatId().toString(), category3Entity.getCatId().toString(), category3Entity.getName());
+                                    return catalog3VO;
+                                }).collect(Collectors.toList());
+                                catalog3VOS = collect;
+                            }
+                            catalog2VO.setCatalog3List(catalog3VOS);
+                            return catalog2VO;
+                        }).collect(Collectors.toList());
+                        catalog2VOS = catalog2VOList;
+                    }
+                    return catalog2VOS;
+                }));
+        return map;
+    }
+
     /**
      * 225,22,2
+     *
      * @param catelogId
      * @param paths
      * @return
@@ -111,9 +159,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
         return paths;
     }
+
     /**
      * 查找该大类下的所有小类 递归查找
-     * @param categoryEntity 某个大类
+     *
+     * @param categoryEntity   某个大类
      * @param categoryEntities 所有的类别数据
      * @return
      */
@@ -126,12 +176,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             //根据小类递归找到小小类
             entity.setChildren(getCategoryChildren(entity, categoryEntities));
             return entity;
-        }).sorted((entity1,entity2) -> {
+        }).sorted((entity1, entity2) -> {
             return (entity1.getSort() == null ? 0 : entity1.getSort()) - (entity2.getSort() == null ? 0 : entity2.getSort());
         }).collect(Collectors.toList());
         return collect;
     }
-
 
 
 }

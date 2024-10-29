@@ -34,6 +34,10 @@ spring:
           filters:
             - RewritePath=/app/(?<segment>/?.*),/renren-fast/$\{segment}
           # localhost:8070/app/captcha.jpg --> localhost:8080/app/captcha.ipg --> localhost:8080/renren-fast/captcha.ipg
+        - id: zzy-mall-route
+          uri: lb://zzy-product
+          predicates:
+            - Host=**.zzy.mall.com
   application:
     name: zzy-gateway
 

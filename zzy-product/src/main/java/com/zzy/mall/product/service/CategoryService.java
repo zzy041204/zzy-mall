@@ -3,6 +3,7 @@ package com.zzy.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzy.mall.common.utils.PageUtils;
 import com.zzy.mall.product.entity.CategoryEntity;
+import com.zzy.mall.product.vo.Catalog2VO;
 
 import java.util.List;
 import java.util.Map;
@@ -25,5 +26,9 @@ public interface CategoryService extends IService<CategoryEntity> {
     Long[] findCatelogPath(Long catelogId);
 
     void updateDetail(CategoryEntity category);
+
+    List<CategoryEntity> getLevel1Category();
+
+    Map<String, List<Catalog2VO>> getCatalog2JSON();
 }
 
