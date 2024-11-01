@@ -101,31 +101,46 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public List<CategoryEntity> getLevel1Category() {
+        //long start = System.currentTimeMillis();
         List<CategoryEntity> list = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+        //System.out.println("查询消耗的时间：" + (System.currentTimeMillis() - start));
         return list;
     }
 
     /**
+     * 根据父编号获取对应的子菜单信息
+     * @param list
+     * @param parentCid
+     * @return
+     */
+    private List<CategoryEntity> queryByParentCid(List<CategoryEntity> list,Long parentCid) {
+        List<CategoryEntity> collect = list.stream().filter(categoryEntity -> categoryEntity.getParentCid().equals(parentCid)).collect(Collectors.toList());
+        return collect;
+    }
+
+    /**
      * 查询出所有的二级和三级分类的数据
-     * 并封装为Map<String, Catalog2VO>对象
+     * 并封装为Map<String, List<Catalog2VO>>对象
      *
      * @return
      */
     @Override
     public Map<String, List<Catalog2VO>> getCatalog2JSON() {
+        // 获取所有分类数据
+        List<CategoryEntity> list = this.list();
         // 获取所有一级分类的编号
-        List<CategoryEntity> level1Category = this.getLevel1Category();
+        List<CategoryEntity> level1Category = this.queryByParentCid(list,0l);
         // 把一级分类的数据转换为Map容器 key是一级分类的编号 value就是一级分类对应的二级分类
         Map<String, List<Catalog2VO>> map = level1Category.stream().collect(Collectors.toMap(key -> key.getCatId().toString()
                 , value -> {
                     List<Catalog2VO> catalog2VOS = null;
-                    List<CategoryEntity> catalog2List = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", value.getCatId()));
+                    List<CategoryEntity> catalog2List = this.queryByParentCid(list,value.getCatId());
                     if (catalog2List.size() > 0 && catalog2List != null) {
                         List<Catalog2VO> catalog2VOList = catalog2List.stream().map(category2Entity -> {
                             Catalog2VO catalog2VO = new Catalog2VO(value.getCatId().toString(), null, category2Entity.getCatId().toString(), category2Entity.getName());
                             List<Catalog2VO.Catalog3VO> catalog3VOS = null;
                             // 根据二级分类的ID 找到对应的三级分类信息
-                            List<CategoryEntity> catalog3List = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", category2Entity.getCatId()));
+                            List<CategoryEntity> catalog3List = this.queryByParentCid(list,category2Entity.getCatId());
                             if (catalog3List.size() > 0 && catalog3List != null) {
                                 List<Catalog2VO.Catalog3VO> collect = catalog3List.stream().map(category3Entity -> {
                                     Catalog2VO.Catalog3VO catalog3VO = new Catalog2VO.Catalog3VO(category2Entity.getCatId().toString(), category3Entity.getCatId().toString(), category3Entity.getName());
