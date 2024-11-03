@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -25,7 +26,7 @@ public class Catalog2VO {
     @NoArgsConstructor
     @AllArgsConstructor
     @Data
-    public static class Catalog3VO{
+    public static class Catalog3VO {
         private String catalog2Id; //三级分类对应的二级分类的编号
         private String id;
         private String name;

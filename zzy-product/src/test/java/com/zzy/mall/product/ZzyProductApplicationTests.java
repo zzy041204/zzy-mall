@@ -10,8 +10,11 @@ import com.zzy.mall.product.entity.BrandEntity;
 import com.zzy.mall.product.service.BrandService;
 import com.zzy.mall.product.service.CategoryService;
 import org.junit.jupiter.api.Test;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import javax.annotation.Resource;
 import java.io.FileInputStream;
@@ -20,6 +23,7 @@ import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 // 指定启动类
 @SpringBootTest(classes = ZzyProductApplication.class)
@@ -95,6 +99,24 @@ public class ZzyProductApplicationTests {
     public void testPath(){
         Long[] catelogPath = categoryService.findCatelogPath(376L);
         System.out.println(Arrays.toString(catelogPath));
+    }
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
+    @Test
+    public void testStringRedisTemplate() {
+        ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
+        ops.set("name","zzy" + UUID.randomUUID());
+        System.out.println("刚刚保存的值:" + ops.get("name"));
+    }
+
+    @Autowired
+    RedissonClient redissonClient;
+
+    @Test
+    public void testRedissonClient() {
+        System.out.println(redissonClient);
     }
 
 }
