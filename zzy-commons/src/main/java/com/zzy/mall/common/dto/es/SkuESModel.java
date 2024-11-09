@@ -5,6 +5,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * 商品上架时 需要保存到ES中的信息
+ */
 @Data
 public class SkuESModel {
 
@@ -27,7 +30,7 @@ public class SkuESModel {
     public static class Attrs{
         private Long attrId;
         private String attrName;
-        private String attrValue;
+        private List<String> attrValue;
     }
 
 }
