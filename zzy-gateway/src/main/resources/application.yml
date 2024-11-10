@@ -37,7 +37,7 @@ spring:
         - id: zzy-mall-route
           uri: lb://zzy-product
           predicates:
-            - Host=**.zzy.mall.com
+            - Host=**.zzy.mall.com,**.zzy.item.com
         - id: zzy-search-route
           uri: lb://zzy-search
           predicates:
