@@ -26,4 +26,10 @@ public class MemberLevelServiceImpl extends ServiceImpl<MemberLevelDao, MemberLe
         return new PageUtils(page);
     }
 
+    @Override
+    public MemberLevelEntity queryMemberLevelDefault() {
+        MemberLevelEntity memberLevel = this.getOne(new QueryWrapper<MemberLevelEntity>().eq("default_status", 1));
+        return memberLevel;
+    }
+
 }

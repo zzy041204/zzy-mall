@@ -4,12 +4,13 @@ import java.util.Arrays;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.zzy.mall.common.exception.BizCodeEnume;
+import com.zzy.mall.member.exception.PhoneExistException;
+import com.zzy.mall.member.exception.UserNameExistException;
+import com.zzy.mall.member.vo.MemberLoginVO;
+import com.zzy.mall.member.vo.MemberRegisterVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.zzy.mall.member.entity.MemberEntity;
 import com.zzy.mall.member.service.MemberService;
@@ -26,10 +27,39 @@ import com.zzy.mall.common.utils.R;
  * @date 2024-10-07 17:16:56
  */
 @RestController
-@RequestMapping("member")
+@RequestMapping("/member/member")
 public class MemberController {
     @Autowired
     private MemberService memberService;
+
+    /**
+     * 会员注册
+     * @return
+     */
+    @PostMapping("/register")
+    public R register(@RequestBody MemberRegisterVO vo){
+        try {
+            memberService.register(vo);
+        }catch (UserNameExistException exception){
+            return R.error(BizCodeEnume.USERNAME_EXIST_EXCEPTION.getCode(),BizCodeEnume.USERNAME_EXIST_EXCEPTION.getMsg());
+        }catch (PhoneExistException exception){
+            return R.error(BizCodeEnume.PHONE_EXIST_EXCEPTION.getCode(), BizCodeEnume.PHONE_EXIST_EXCEPTION.getMsg());
+        }catch (Exception exception){
+            return R.error(BizCodeEnume.UNKNOWN_EXCEPTION.getCode(), BizCodeEnume.UNKNOWN_EXCEPTION.getMsg());
+        }
+        return R.ok();
+    }
+
+    @PostMapping("/login")
+    public R login(@RequestBody MemberLoginVO vo){
+         MemberEntity member = memberService.login(vo);
+         if (member != null){
+             return R.ok();
+         }else {
+             return R.error(BizCodeEnume.USERNAME_PHONE_VALID_EXCEPTION.getCode(),BizCodeEnume.USERNAME_PHONE_VALID_EXCEPTION.getMsg());
+         }
+    }
+
 
     /**
      * 列表

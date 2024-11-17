@@ -49,4 +49,7 @@ public class SkuSaleAttrValueEntity implements Serializable {
 	@TableField(exist = false)
 	private String groupAttrValue;
 
+	@TableField(exist = false)
+	private String concatString;
+
 }

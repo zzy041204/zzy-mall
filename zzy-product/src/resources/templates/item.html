@@ -607,7 +607,7 @@
 
                 <div class="box-btns clear">
                     <div class="box-btns-one">
-                        <input type="text" name="" id="" value="1" />
+                        <input type="text" name="" id="numInput" value="1" />
                         <div class="box-btns-one1">
 
                             <div>
@@ -624,8 +624,8 @@
                         </div>
                     </div>
                     <div class="box-btns-two">
-                        <a href="/static/item/../商品分类\index.html">
-                            立即预约
+                        <a  href="#" id="addCart" th:attr="skuId=${item.info.skuId}">
+                            加入购物车
                         </a>
                     </div>
                     <div class="box-btns-three">
@@ -658,11 +658,11 @@
         </div>
     </div>
     <!--预约抢购流程-->
-    <div class="qianggoulioucheng">
+    <!--<div class="qianggoulioucheng">
         <div class="lioucheng">
             <h3>预约抢购流程</h3>
         </div>
-        <!--抢购步骤-->
+        &lt;!&ndash;抢购步骤&ndash;&gt;
         <ul class="qianggoubuzhao">
             <li>
                 <img src="/static/item/img/shop_03.png" />
@@ -693,7 +693,7 @@
                 </dl>
             </li>
         </ul>
-    </div>
+    </div>-->
 
     <div class="ShopXiangqing">
         <div class="allLeft">
@@ -1238,6 +1238,13 @@
 <script src="/static/item/js/jquery1.9.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/item/js/js.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript">
+
+    $("#addCart").click(function (){
+        var num = $("#numInput").val();
+        var skuId = $(this).attr("skuId");
+        location.href="http://cart.zzy.com/addCart?skuId="+skuId+"&num="+num;
+    });
+
 </script>
 
 </html>

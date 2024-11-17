@@ -6,7 +6,7 @@
     <artifactId>zzy-search</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>zzy-search</name>
-    <description>zzy-search</description>
+    <description>检索服务</description>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>

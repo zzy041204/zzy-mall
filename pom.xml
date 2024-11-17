@@ -21,6 +21,8 @@
         <module>zzy-gateway</module>
         <module>zzy-third-party</module>
         <module>zzy-search</module>
+        <module>zzy-auth_server</module>
+        <module>zzy-cart</module>
     </modules>
 
 

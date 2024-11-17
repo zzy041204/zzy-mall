@@ -1,9 +1,11 @@
 package com.zzy.mall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +40,10 @@ public class SkuInfoController {
         return R.ok().put("page", page);
     }
 
+    @GetMapping("/saleAttrs/{skuId}")
+    public List<String> getSkuSaleAttrs(@PathVariable("skuId") Long skuId){
+        return skuInfoService.getSkuSaleAttrs(skuId);
+    }
 
     /**
      * 信息
@@ -47,7 +53,7 @@ public class SkuInfoController {
     public R info(@PathVariable("skuId") Long skuId){
 		SkuInfoEntity skuInfo = skuInfoService.getById(skuId);
 
-        return R.ok().put("skuInfo", skuInfo);
+        return R.ok().put("skuInfo", skuInfo).put("skuInfoJSON", JSON.toJSONString(skuInfo));
     }
 
     /**

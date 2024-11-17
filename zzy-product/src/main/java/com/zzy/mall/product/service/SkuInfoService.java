@@ -5,6 +5,7 @@ import com.zzy.mall.common.utils.PageUtils;
 import com.zzy.mall.product.entity.SkuInfoEntity;
 import com.zzy.mall.product.vo.ItemVO;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -22,5 +23,7 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
     PageUtils queryPageByCondition(Map<String, Object> params);
 
     ItemVO item(Long skuId) throws ExecutionException, InterruptedException;
+
+    List<String> getSkuSaleAttrs(Long skuId);
 }
 

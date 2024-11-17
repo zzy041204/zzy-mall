@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -175,6 +177,19 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         CompletableFuture.allOf(saleFuture, spuFuture, groupFuture,imageFuture).get();
 
         return itemVO;
+    }
+
+    @Override
+    public List<String> getSkuSaleAttrs(Long skuId) {
+        List<SkuSaleAttrValueEntity> skuSaleAttrValueEntityList = skuSaleAttrValueService.list(new QueryWrapper<SkuSaleAttrValueEntity>()
+                .select("CONCAT(attr_name,':',attr_value) AS concatString").eq("sku_id", skuId));
+        List<String> list = new ArrayList<>();
+        if (skuSaleAttrValueEntityList != null && !skuSaleAttrValueEntityList.isEmpty()) {
+            skuSaleAttrValueEntityList.forEach(skuSaleAttrValueEntity -> {
+                list.add(skuSaleAttrValueEntity.getConcatString());
+            });
+        }
+        return list;
     }
 
 }

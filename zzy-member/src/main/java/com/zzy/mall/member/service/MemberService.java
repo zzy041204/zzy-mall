@@ -3,6 +3,8 @@ package com.zzy.mall.member.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzy.mall.common.utils.PageUtils;
 import com.zzy.mall.member.entity.MemberEntity;
+import com.zzy.mall.member.vo.MemberLoginVO;
+import com.zzy.mall.member.vo.MemberRegisterVO;
 
 import java.util.Map;
 
@@ -16,5 +18,9 @@ import java.util.Map;
 public interface MemberService extends IService<MemberEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    void register(MemberRegisterVO vo);
+
+    MemberEntity login(MemberLoginVO vo);
 }
 

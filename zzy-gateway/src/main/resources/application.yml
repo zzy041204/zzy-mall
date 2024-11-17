@@ -37,11 +37,23 @@ spring:
         - id: zzy-mall-route
           uri: lb://zzy-product
           predicates:
-            - Host=**.zzy.mall.com,**.zzy.item.com
+            - Host=**.mall.zzy.com,**.item.zzy.com
         - id: zzy-search-route
           uri: lb://zzy-search
           predicates:
-            - Host=**.zzy.search.com
+            - Host=**.search.zzy.com
+        - id: zzy-auth-route
+          uri: lb://zzy-auth
+          predicates:
+            - Host=**.auth.zzy.com
+        - id: zzy-cart-route
+          uri: lb://zzy-cart
+          predicates:
+            - Host=**.cart.zzy.com
+        - id: zzy-order-route
+          uri: lb://zzy-order
+          predicates:
+            - Host=**.order.zzy.com
   application:
     name: zzy-gateway
 

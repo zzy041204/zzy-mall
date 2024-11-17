@@ -399,7 +399,7 @@
 <!--搜索导航-->
 <div class="header_sous">
     <div class="logo">
-        <a href="http://zzy.mall.com"><img src="/static/search/image/logo1.jpg" alt=""></a>
+        <a href="http://mall.zzy.com"><img src="/static/search/image/logo1.jpg" alt=""></a>
     </div>
     <div class="header_form">
         <input id="keyword_input" type="text" placeholder="手机" th:value="${param.keyword}"/>
@@ -1169,12 +1169,12 @@
                                 <a href="#">关注</a>
                             </div>
                             <p class="da">
-                                <a th:href="${'http://zzy.item.com/'+ product.skuId +'.html'}" >
+                                <a th:href="${'http://item.zzy.com/'+ product.skuId +'.html'}" >
                                     <img th:src="${product.getSkuImg()}" class="dim">
                                 </a>
                             </p>
                             <ul class="tab_im">
-                                <li><a th:href="${'http://zzy.item.com/'+ product.skuId +'.html'}" title="黑色">
+                                <li><a th:href="${'http://item.zzy.com/'+ product.skuId +'.html'}" title="黑色">
                                     <img th:src="${product.getSkuImg()}"></a></li>
 
                             </ul>

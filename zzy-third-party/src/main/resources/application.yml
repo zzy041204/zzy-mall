@@ -9,6 +9,11 @@ spring:
       oss:
         endpoint: oss-cn-wuhan-lr.aliyuncs.com
         bucket: zhouziyang-mall
+      sms:
+        host: https://wwsms.market.alicloudapi.com
+        path: /send_sms
+        method: POST
+        appcode: 0de38643bd414257801a01c957337d7b
 
 server:
   port: 8090
