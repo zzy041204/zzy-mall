@@ -3,6 +3,7 @@ package com.zzy.mall.product.service.impl;
 import com.zzy.mall.product.entity.*;
 import com.zzy.mall.product.service.*;
 import com.zzy.mall.product.vo.ItemVO;
+import com.zzy.mall.product.vo.OrderItemSpuInfoVO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -191,5 +192,7 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         }
         return list;
     }
+
+
 
 }

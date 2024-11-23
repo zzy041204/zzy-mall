@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
-import com.zzy.mall.order.feign.ProductService;
+import com.zzy.mall.order.feign.ProductFeignService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -32,7 +32,7 @@ public class OrderController {
     private OrderService orderService;
 
     @Autowired
-    ProductService productService;
+    ProductFeignService productService;
 
     @GetMapping("/products")
     public R queryProduct(){

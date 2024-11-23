@@ -1,9 +1,11 @@
 package com.zzy.mall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.zzy.mall.product.vo.OrderItemSpuInfoVO;
 import com.zzy.mall.product.vo.SpuInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +41,11 @@ public class SpuInfoController {
     public R spuUp(@PathVariable("spuId") Long spuId) {
         spuInfoService.up(spuId);
         return R.ok();
+    }
+
+    @RequestMapping("/getOrderItemSpuInfoBySpuId/{spuIds}")
+    public List<OrderItemSpuInfoVO> getOrderItemSpuInfoBySpuId(@PathVariable("spuIds") Long[] spuIds) {
+        return spuInfoService.getOrderItemSpuInfoBySpuIds(spuIds);
     }
 
     /**

@@ -5,6 +5,7 @@ import com.zzy.mall.common.utils.PageUtils;
 import com.zzy.mall.member.entity.MemberEntity;
 import com.zzy.mall.member.vo.MemberLoginVO;
 import com.zzy.mall.member.vo.MemberRegisterVO;
+import com.zzy.mall.member.vo.SocialUser;
 
 import java.util.Map;
 
@@ -22,5 +23,7 @@ public interface MemberService extends IService<MemberEntity> {
     void register(MemberRegisterVO vo);
 
     MemberEntity login(MemberLoginVO vo);
+
+    MemberEntity socialLogin(SocialUser vo);
 }
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzy.mall.common.utils.PageUtils;
 import com.zzy.mall.product.entity.SkuInfoEntity;
 import com.zzy.mall.product.vo.ItemVO;
+import com.zzy.mall.product.vo.OrderItemSpuInfoVO;
 
 import java.util.List;
 import java.util.Map;

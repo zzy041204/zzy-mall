@@ -11,7 +11,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 public class MySessionConfig {
 
     /**
-     * 自定义Cookie的配置
+     * 自定义Cookie的配置 实现子域名共享一个session
      * @return
      */
     @Bean

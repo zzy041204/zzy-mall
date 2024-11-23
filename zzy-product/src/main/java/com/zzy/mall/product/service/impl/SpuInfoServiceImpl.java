@@ -30,6 +30,8 @@ import com.zzy.mall.common.utils.Query;
 
 import com.zzy.mall.product.dao.SpuInfoDao;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @Service("spuInfoService")
@@ -287,6 +289,33 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             this.update(new UpdateWrapper<SpuInfoEntity>().set("publish_status", ProductConstant.StatusEnum.SPU_PU.getCode()).set("update_time",new Date()).eq("id", spuId));
         }
     }
+
+    @Override
+    public List<OrderItemSpuInfoVO> getOrderItemSpuInfoBySpuIds(Long[] spuIds) {
+        List<OrderItemSpuInfoVO> orderItemSpuInfoVOS = new ArrayList<>();
+        for (Long spuId : spuIds) {
+            OrderItemSpuInfoVO orderItemSpuInfoVO = new OrderItemSpuInfoVO();
+            // 设置spu基本信息
+            SpuInfoEntity spuInfoEntity = this.getById(spuId);
+            orderItemSpuInfoVO.setId(spuId);
+            orderItemSpuInfoVO.setSpuName(spuInfoEntity.getSpuName());
+            orderItemSpuInfoVO.setSpuDescription(spuInfoEntity.getSpuDescription());
+            // 设置品牌和类别 编号和名称
+            orderItemSpuInfoVO.setBrandId(spuInfoEntity.getBrandId());
+            BrandEntity brandEntity = brandService.getById(spuInfoEntity.getBrandId());
+            orderItemSpuInfoVO.setBrandName(brandEntity.getName());
+            orderItemSpuInfoVO.setCatalogId(spuInfoEntity.getCatalogId());
+            CategoryEntity categoryEntity = categoryService.getById(spuInfoEntity.getCatalogId());
+            orderItemSpuInfoVO.setCatalogName(categoryEntity.getName());
+            // 设置spu图片
+            SpuInfoDescEntity descEntity = spuInfoDescService.getById(spuId);
+            orderItemSpuInfoVO.setImg(descEntity.getDecript());
+            orderItemSpuInfoVO.setCreateTime(new Date());
+            orderItemSpuInfoVOS.add(orderItemSpuInfoVO);
+        }
+        return orderItemSpuInfoVOS;
+    }
+
 
     /**
      * 根据skuIds获取对应的库存状态

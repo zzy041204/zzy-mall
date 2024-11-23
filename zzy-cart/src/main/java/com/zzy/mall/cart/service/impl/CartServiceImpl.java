@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -101,11 +102,29 @@ public class CartServiceImpl implements ICartService {
         return item;
     }
 
+    /**
+     * 获取当前登录用户选中的商品信息在购物车中
+     * @return
+     */
+    @Override
+    public List<CartItem> getUserCartItems() {
+        BoundHashOperations<String, Object, Object> operations = getCartKeyOperation();
+        Set<Object> keys = operations.keys();
+        List<CartItem> cartItems = new ArrayList<>();
+        for (Object k : keys) {
+            String key = (String) k;
+            String item = (String) operations.get(key);
+            CartItem cartItem = JSON.parseObject(item, CartItem.class);
+            if (cartItem != null && cartItem.isCheck()) {
+                cartItems.add(cartItem);
+            }
+        }
+        return cartItems;
+    }
+
     private BoundHashOperations<String, Object, Object> getCartKeyOperation(){
-        /*MemberVO memberVO = AuthInterceptor.threadLocal.get();
-        String cartKey = CartConstant.CART_PREFIX + memberVO.getId();*/
         MemberVO memberVO = AuthInterceptor.threadLocal.get();
-        String cartKey = CartConstant.CART_PREFIX + 1;
+        String cartKey = CartConstant.CART_PREFIX + memberVO.getId();
         BoundHashOperations<String, Object, Object> hashOperations = redisTemplate.boundHashOps(cartKey);
         return hashOperations;
     }

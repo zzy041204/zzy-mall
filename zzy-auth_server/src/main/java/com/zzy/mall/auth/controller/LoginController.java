@@ -1,5 +1,6 @@
 package com.zzy.mall.auth.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.zzy.mall.auth.feign.MemberFeignService;
 import com.zzy.mall.auth.feign.ThirdFeignService;
 import com.zzy.mall.auth.utils.RandomCodeUtils;
@@ -8,6 +9,7 @@ import com.zzy.mall.auth.vo.UserRegisterVO;
 import com.zzy.mall.common.constant.SMSConstant;
 import com.zzy.mall.common.exception.BizCodeEnume;
 import com.zzy.mall.common.utils.R;
+import com.zzy.mall.common.vo.MemberVO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,6 +20,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
@@ -106,10 +109,13 @@ public class LoginController {
      * @return
      */
     @PostMapping("/login")
-    public String login(LoginVO vo, RedirectAttributes redirectAttributes){
+    public String login(LoginVO vo, RedirectAttributes redirectAttributes, HttpSession session){
         R login = memberFeignService.login(vo);
         if (login.getCode() == 0){
             // 登录成功
+            String entity = (String) login.get("entity");
+            MemberVO memberVO = JSON.parseObject(entity, MemberVO.class);
+            session.setAttribute("loginUser",memberVO);
             return "redirect:http://mall.zzy.com/home";
         }
         // 表示登录失败,重新跳转到登陆页面

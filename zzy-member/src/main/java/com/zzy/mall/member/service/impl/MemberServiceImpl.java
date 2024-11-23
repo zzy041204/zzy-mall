@@ -1,17 +1,25 @@
 package com.zzy.mall.member.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.zzy.mall.common.utils.HttpUtils;
 import com.zzy.mall.member.entity.MemberLevelEntity;
 import com.zzy.mall.member.exception.PhoneExistException;
 import com.zzy.mall.member.exception.UserNameExistException;
 import com.zzy.mall.member.service.MemberLevelService;
 import com.zzy.mall.member.vo.MemberLoginVO;
 import com.zzy.mall.member.vo.MemberRegisterVO;
+import com.zzy.mall.member.vo.SocialUser;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -41,6 +49,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
 
     /**
      * 完成会员的注册功能
+     *
      * @param vo
      */
     @Override
@@ -52,6 +61,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         // 添加对应的账号和手机号不能重复
         checkPhoneUnique(vo.getPhone());
         checkUserNameUnique(vo.getUserName());
+        memberEntity.setNickname(vo.getUserName());
         memberEntity.setMobile(vo.getPhone());
         memberEntity.setUsername(vo.getUserName());
         // 需要对密码进行加密处理
@@ -82,7 +92,63 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
     }
 
     /**
+     * 社交登录
+     *
+     * @param vo
+     * @return
+     */
+    @Override
+    public MemberEntity socialLogin(SocialUser vo) {
+        // 如果该用户是第一次社交登录 需要注册 如果不是第一次社交登录 更新相关信息 登录功能
+        MemberEntity memberEntity = this.getOne(new QueryWrapper<MemberEntity>().eq("social_uid", vo.getUid()));
+        if (memberEntity != null) {
+            // 说明当前社交用户已经注册过了 更新token和过期时间
+            MemberEntity entity = new MemberEntity();
+            entity.setId(memberEntity.getId());
+            entity.setAccessToken(vo.getAccessToken());
+            entity.setExpiresIn(vo.getExpiresIn());
+            this.updateById(entity);
+            // 在返回的登录用户信息的同时 我们也同步更新token和过期时间
+            memberEntity.setAccessToken(vo.getAccessToken());
+            memberEntity.setExpiresIn(vo.getExpiresIn());
+            return memberEntity;
+        }else {
+            // 表示用户是第一次提交 那么我们需要对应的注册
+            MemberEntity entity = new MemberEntity();
+            entity.setSocialUid(vo.getUid());
+            entity.setAccessToken(vo.getAccessToken());
+            entity.setExpiresIn(vo.getExpiresIn());
+            // 通过token调用微博开放的接口 获取用户的相关信息
+            try {
+                HashMap<String, String> querys = new HashMap<>();
+                querys.put("access_token", vo.getAccessToken());
+                querys.put("uid", vo.getUid());
+                HttpResponse response = HttpUtils.doGet("https://api.weibo.com",
+                        "/2/users/show.json",
+                        "get",
+                        new HashMap<>(),
+                        querys);
+                if (response.getStatusLine().getStatusCode() == 200){
+                    // 获取微博账号基本信息成功
+                    String json = EntityUtils.toString(response.getEntity());
+                    JSONObject jsonObject = JSON.parseObject(json);
+                    String nickName = jsonObject.getString("screen_name");
+                    String gender = jsonObject.getString("gender");
+                    entity.setNickname(nickName);
+                    entity.setGender("m".equals(gender) ? 1 : 0);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // 注册用户信息
+            this.save(entity);
+            return entity;
+        }
+    }
+
+    /**
      * 校验账号是否存在
+     *
      * @param userName
      * @throws UserNameExistException
      */
@@ -96,6 +162,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
 
     /**
      * 校验手机号是否存在
+     *
      * @param phone
      * @throws PhoneExistException
      */

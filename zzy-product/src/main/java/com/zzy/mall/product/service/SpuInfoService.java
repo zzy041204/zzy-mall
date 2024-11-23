@@ -3,8 +3,10 @@ package com.zzy.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzy.mall.common.utils.PageUtils;
 import com.zzy.mall.product.entity.SpuInfoEntity;
+import com.zzy.mall.product.vo.OrderItemSpuInfoVO;
 import com.zzy.mall.product.vo.SpuInfoVO;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,5 +25,7 @@ public interface SpuInfoService extends IService<SpuInfoEntity> {
     PageUtils queryPageByCondition(Map<String, Object> params);
 
     void up(Long spuId);
+
+    List<OrderItemSpuInfoVO> getOrderItemSpuInfoBySpuIds(Long[] spuIds);
 }
 

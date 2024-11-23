@@ -6,6 +6,9 @@ import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.zzy.mall.common.dto.SkuStockDTO;
+import com.zzy.mall.common.exception.BizCodeEnume;
+import com.zzy.mall.common.exception.NoStockException;
+import com.zzy.mall.ware.vo.WareSkuLockVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +31,17 @@ import com.zzy.mall.common.utils.R;
 public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
+
+    @PostMapping("/lock/order")
+    public R orderLockStock(@RequestBody WareSkuLockVO vo){
+        try{
+            Boolean result = wareSkuService.orderLockStock(vo);
+        }catch (NoStockException e){
+            // 锁定库存失败
+            return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(), BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
+        }
+        return R.ok();
+    }
 
     /**
      * 根据skuId查询是否还有库存

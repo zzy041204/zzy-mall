@@ -14,4 +14,7 @@ public interface ICartService {
     public Cart getCart();
 
     CartItem addCart(Long skuId, Integer num) throws ExecutionException, InterruptedException;
+
+    List<CartItem> getUserCartItems();
+
 }
