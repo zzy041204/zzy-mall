@@ -14,7 +14,7 @@ public class OrderMsgProducer {
 
     public void sendOrderMessage(String orderSn){
         rocketMQTemplate.syncSend(OrderConstant.ORDER_ROCKETMQ_TOPIC,
-                MessageBuilder.withPayload(orderSn).build(),5000,4);
+                MessageBuilder.withPayload(orderSn).build(),5000,16);
     }
 
 }

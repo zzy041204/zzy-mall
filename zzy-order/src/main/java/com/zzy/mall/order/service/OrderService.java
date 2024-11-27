@@ -8,6 +8,7 @@ import com.zzy.mall.order.entity.OrderEntity;
 import com.zzy.mall.order.vo.OrderConfirmVO;
 import com.zzy.mall.order.vo.OrderResponseVO;
 import com.zzy.mall.order.vo.OrderSubmitVO;
+import com.zzy.mall.order.vo.PayVO;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -26,5 +27,11 @@ public interface OrderService extends IService<OrderEntity> {
     OrderConfirmVO confirmOrder() throws ExecutionException, InterruptedException;
 
     OrderResponseVO submitOrder(OrderSubmitVO vo) throws NoStockException, RepeatSubmitException;
+
+    PayVO getOrderPay(String orderSn);
+
+    void updateOrderStatus(String orderSn, Integer status);
+
+    void handleOrderComplete(String orderSn);
 }
 

@@ -1,6 +1,8 @@
 package com.zzy.mall.order.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.zzy.mall.common.constant.CartConstant;
 import com.zzy.mall.common.constant.OrderConstant;
 import com.zzy.mall.common.exception.BizCodeEnume;
 import com.zzy.mall.common.exception.NoStockException;
@@ -23,6 +25,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -177,6 +180,60 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }
     }
 
+    @Override
+    public PayVO getOrderPay(String orderSn) {
+        PayVO payVO = new PayVO();
+        // 根据订单号查询相关的订单信息
+        OrderEntity orderEntity = this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
+        payVO.setOut_order_no(orderSn);
+        payVO.setTotal_amount(orderEntity.getTotalAmount().setScale(2, BigDecimal.ROUND_HALF_UP).toString());
+        // 订单名称和订单描述
+        payVO.setSubject(orderEntity.getOrderSn());
+        payVO.setBody(orderEntity.getOrderSn());
+        return payVO;
+    }
+
+    @Override
+    public void updateOrderStatus(String orderSn, Integer status) {
+        this.update(new UpdateWrapper<OrderEntity>().set("status",status).eq("order_sn", orderSn));
+    }
+
+    @Transactional
+    @Override
+    public void handleOrderComplete(String orderSn) {
+        // 1.更新订单状态
+        this.updateOrderStatus(orderSn, OrderConstant.OrderStatusEnum.WAIT_SEND_GOOD.getCode());
+        // 2.更新库存信息 库存数量递减
+        updateWare(orderSn);
+        // 3.移除购物车中的支付的商品
+        removeCart(orderSn);
+        // 4.更新会员积分....
+
+    }
+
+    private void removeCart(String orderSn) {
+        OrderEntity orderEntity = this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
+        Long memberId = orderEntity.getMemberId();
+        List<OrderItemEntity> itemEntityList = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn));
+        for (OrderItemEntity orderItemEntity : itemEntityList) {
+            stringRedisTemplate.opsForHash().delete(CartConstant.CART_PREFIX+memberId,orderItemEntity.getSkuId().toString());
+        }
+    }
+
+    private void updateWare(String orderSn) throws NoStockException{
+        List<OrderItemEntity> itemEntityList = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn));
+        List<WareSkuReduceVO> list = itemEntityList.stream().map(item -> {
+            WareSkuReduceVO wareSkuReduceVO = new WareSkuReduceVO();
+            wareSkuReduceVO.setSkuId(item.getSkuId());
+            wareSkuReduceVO.setSkuQuantity(item.getSkuQuantity());
+            return wareSkuReduceVO;
+        }).collect(Collectors.toList());
+        R r = wareFeignService.reduceStock(list);
+        if (r.getCode() != 0) {
+            throw new NoStockException(10000l);
+        }
+    }
+
     private void lockWare(OrderCreateTO orderCreateTO,OrderResponseVO responseVO) throws NoStockException {
         // 4.锁定库存信息
         // 订单号 skuId skuName 商品的数量
@@ -228,6 +285,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         OrderEntity orderEntity = createOrderEntity(vo);
         // 创建OrderItemEntity
         List<OrderItemEntity> orderItemEntities = createOrderItemEntity(orderEntity.getOrderSn());
+        // 根据订单项生成订单总额
+        BigDecimal total_amount = new BigDecimal(0);
+        for (OrderItemEntity orderItemEntity : orderItemEntities) {
+            BigDecimal total = orderItemEntity.getSkuPrice().multiply(new BigDecimal(orderItemEntity.getSkuQuantity()));
+            total_amount = total_amount.add(total);
+        }
+        orderEntity.setTotalAmount(total_amount);
         createTO.setOrderEntity(orderEntity);
         createTO.setOrderItemEntity(orderItemEntities);
         return createTO;
@@ -321,6 +385,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderEntity.setReceiverPostCode(memberAddressVO.getPostCode());
         orderEntity.setReceiverRegion(memberAddressVO.getRegion());
         orderEntity.setReceiverProvince(memberAddressVO.getProvince());
+        // 订单总额
+
         // 设置订单状态
         orderEntity.setStatus(OrderConstant.OrderStatusEnum.WAIT_FOR_PAYMENT.getCode());
         return orderEntity;

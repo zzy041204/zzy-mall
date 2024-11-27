@@ -5,7 +5,9 @@ import com.zzy.mall.common.dto.SkuStockDTO;
 import com.zzy.mall.common.exception.NoStockException;
 import com.zzy.mall.ware.feign.ProductFeignService;
 import com.zzy.mall.ware.vo.OrderItemVO;
+import com.zzy.mall.ware.vo.SkuWareReduceResultVo;
 import com.zzy.mall.ware.vo.WareSkuLockVO;
+import com.zzy.mall.ware.vo.WareSkuReduceVO;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -124,6 +126,39 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             if( count > 0){
                 // 表示商品没有锁定成功
                 throw new NoStockException(skuId);
+            }
+        }
+        return true;
+    }
+
+    @Transactional
+    @Override
+    public Boolean reduceStock(List<WareSkuReduceVO> list) {
+        List<SkuWareReduceResultVo> resultList = list.stream().map(reduceVO -> {
+            SkuWareReduceResultVo skuWareReduceResultVo = new SkuWareReduceResultVo();
+            skuWareReduceResultVo.setSkuId(reduceVO.getSkuId());
+            List<WareSkuEntity> wareSkuEntityList = this.list(new QueryWrapper<WareSkuEntity>().eq("sku_id", reduceVO.getSkuId()));
+            Integer skuQuantity = reduceVO.getSkuQuantity();
+            for (WareSkuEntity skuEntity : wareSkuEntityList) {
+                if (skuEntity.getStockLocked() >= skuQuantity) {
+                    this.update(new UpdateWrapper<WareSkuEntity>().set("stock", skuEntity.getStock() - skuQuantity).set("stock_locked", skuEntity.getStockLocked() - skuQuantity).eq("sku_id", reduceVO.getSkuId()).eq("ware_id", skuEntity.getWareId()));
+                    skuQuantity = 0;
+                    break;
+                } else {
+                    skuQuantity -= skuEntity.getStockLocked();
+                    this.update(new UpdateWrapper<WareSkuEntity>().set("stock", skuEntity.getStock() - skuEntity.getStockLocked()).set("stock_locked", 0).eq("sku_id", reduceVO.getSkuId()).eq("ware_id", skuEntity.getWareId()));
+                }
+            }
+            if (skuQuantity > 0) {
+                skuWareReduceResultVo.setResult(false);
+            } else {
+                skuWareReduceResultVo.setResult(true);
+            }
+            return skuWareReduceResultVo;
+        }).collect(Collectors.toList());
+        for (SkuWareReduceResultVo skuWareReduceResultVo : resultList) {
+            if (skuWareReduceResultVo.getResult() == false){
+                return false;
             }
         }
         return true;

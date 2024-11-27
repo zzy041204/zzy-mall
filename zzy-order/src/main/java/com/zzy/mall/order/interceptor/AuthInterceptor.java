@@ -2,6 +2,7 @@ package com.zzy.mall.order.interceptor;
 
 import com.zzy.mall.common.constant.AuthConstant;
 import com.zzy.mall.common.vo.MemberVO;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +16,12 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 支付宝的回调 直接放过
+        String requestURI = request.getRequestURI();
+        boolean match = new AntPathMatcher().match("/orderPay/**", requestURI);
+        if (match){
+            return true;
+        }
         // 通过HttpSession获取当前登录的用户信息
         HttpSession session = request.getSession(false);
         Object attribute = session.getAttribute(AuthConstant.AUTH_SESSION_REDIS);

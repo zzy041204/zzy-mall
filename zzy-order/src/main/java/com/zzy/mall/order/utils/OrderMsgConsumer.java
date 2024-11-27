@@ -12,6 +12,7 @@ public class OrderMsgConsumer implements RocketMQListener<String> {
 
     @Override
     public void onMessage(String s) {
+        // TODO 订单关单的逻辑操作
         System.out.println("收到的消息是：" + s);
     }
 }

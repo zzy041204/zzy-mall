@@ -9,6 +9,7 @@ import com.zzy.mall.common.dto.SkuStockDTO;
 import com.zzy.mall.common.exception.BizCodeEnume;
 import com.zzy.mall.common.exception.NoStockException;
 import com.zzy.mall.ware.vo.WareSkuLockVO;
+import com.zzy.mall.ware.vo.WareSkuReduceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,16 @@ public class WareSkuController {
             return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(), BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
         }
         return R.ok();
+    }
+
+    @PostMapping("/reduce")
+    public R reduceStock(@RequestBody List<WareSkuReduceVO> list){
+        Boolean reduce = wareSkuService.reduceStock(list);
+        if(reduce){
+            return R.ok();
+        }else {
+            return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(), BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
+        }
     }
 
     /**
