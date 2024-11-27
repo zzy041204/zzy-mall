@@ -8,6 +8,9 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.56.100:8848
+    #alibaba:
+    #  seata:
+    #    tx-service-group: mall_order_group
   application:
     name: zzy-order
   redis:
@@ -37,3 +40,9 @@ server:
 user:
   userName: zhangsan
   age: 18
+rocketmq:
+  name-server: 192.168.56.100:9876
+  producer:
+    group: order-producer-group
+  consumer:
+    group: order-consumer-group

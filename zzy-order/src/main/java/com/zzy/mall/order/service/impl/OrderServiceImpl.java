@@ -15,6 +15,7 @@ import com.zzy.mall.order.feign.ProductFeignService;
 import com.zzy.mall.order.feign.WareFeignService;
 import com.zzy.mall.order.interceptor.AuthInterceptor;
 import com.zzy.mall.order.service.OrderItemService;
+import com.zzy.mall.order.utils.OrderMsgProducer;
 import com.zzy.mall.order.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,6 +70,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     WareFeignService wareFeignService;
+
+    @Autowired
+    OrderMsgProducer orderMsgProducer;
 
 
     private Lock lock = new ReentrantLock();
@@ -131,6 +135,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return confirmVO;
     }
 
+    /**
+     *  Seata分布式事务管理 通过@GlobalTransactional修饰
+     * @param vo
+     * @return
+     * @throws NoStockException
+     * @throws RepeatSubmitException
+     */
+    //@GlobalTransactional
     @Transactional
     @Override
     public OrderResponseVO submitOrder(OrderSubmitVO vo) throws NoStockException,RepeatSubmitException {
@@ -148,28 +160,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 OrderCreateTO orderCreateTO = createOrder(vo);
                 // 3.保存订单信息
                 saveOrder(orderCreateTO);
-                // 4.锁定库存信息
-                // 订单号 skuId skuName 商品的数量
-                WareSkuLockVO wareSkuLockVO = new WareSkuLockVO();
-                // 封装对象
-                wareSkuLockVO.setOrderSn(orderCreateTO.getOrderEntity().getOrderSn());
-                List<OrderItemVO> orderItemVOS = orderCreateTO.getOrderItemEntity().stream().map((item) -> {
-                    OrderItemVO orderItemVO = new OrderItemVO();
-                    orderItemVO.setSkuId(item.getSkuId());
-                    orderItemVO.setTitle(item.getSkuName());
-                    orderItemVO.setCount(item.getSkuQuantity());
-                    return orderItemVO;
-                }).collect(Collectors.toList());
-                wareSkuLockVO.setOrderItems(orderItemVOS);
-                R r = wareFeignService.orderLockStock(wareSkuLockVO);
-                if (r.getCode() == 0) {
-                    // 锁定库存成功
-                    responseVO.setCode(0);
-                    responseVO.setOrderEntity(orderCreateTO.getOrderEntity());
-                } else {
-                    responseVO.setCode(2); // 库存不足 锁定失败
-                    throw new NoStockException(10000l);
-                }
+                // 4.锁定库存
+                lockWare(orderCreateTO,responseVO);
+                // 5.同步更新会员积分
+                //int i = 1 / 0;
+                // 订单成功保存后 需要给消息中间件发送延迟30分钟的关单消息
+                orderMsgProducer.sendOrderMessage(orderCreateTO.getOrderEntity().getOrderSn());
             } else {
                 // 表示重复提交
                 responseVO.setCode(1);
@@ -178,6 +174,31 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             return responseVO;
         }finally {
             lock.unlock();
+        }
+    }
+
+    private void lockWare(OrderCreateTO orderCreateTO,OrderResponseVO responseVO) throws NoStockException {
+        // 4.锁定库存信息
+        // 订单号 skuId skuName 商品的数量
+        WareSkuLockVO wareSkuLockVO = new WareSkuLockVO();
+        // 封装对象
+        wareSkuLockVO.setOrderSn(orderCreateTO.getOrderEntity().getOrderSn());
+        List<OrderItemVO> orderItemVOS = orderCreateTO.getOrderItemEntity().stream().map((item) -> {
+            OrderItemVO orderItemVO = new OrderItemVO();
+            orderItemVO.setSkuId(item.getSkuId());
+            orderItemVO.setTitle(item.getSkuName());
+            orderItemVO.setCount(item.getSkuQuantity());
+            return orderItemVO;
+        }).collect(Collectors.toList());
+        wareSkuLockVO.setOrderItems(orderItemVOS);
+        R r = wareFeignService.orderLockStock(wareSkuLockVO);
+        if (r.getCode() == 0) {
+            // 锁定库存成功
+            responseVO.setCode(0);
+            responseVO.setOrderEntity(orderCreateTO.getOrderEntity());
+        } else {
+            responseVO.setCode(2); // 库存不足 锁定失败
+            throw new NoStockException(10000l);
         }
     }
 
