@@ -22,6 +22,8 @@ public class ItemVO {
     // 5.获取SPU的规格参数
     private List<SpuItemGroupAttrVO> baseAttrs;
 
+    private SeckillVO seckillVO;
+
     @Data
     public static class SkuItemSaleVO{
         private Long attrId;

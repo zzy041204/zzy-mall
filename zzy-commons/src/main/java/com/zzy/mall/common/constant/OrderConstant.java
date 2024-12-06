@@ -9,6 +9,8 @@ public class OrderConstant {
 
     public static final String ORDER_ROCKETMQ_TOPIC = "ORDER-TOPIC";
 
+    public static final String ROCKETMQ_SECKILL_ORDER_TOPIC  = "SECKILL-ORDER-TOPIC";
+
     public enum OrderStatusEnum {
 
         WAIT_FOR_PAYMENT(0,"待付款"),

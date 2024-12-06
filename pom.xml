@@ -23,6 +23,7 @@
         <module>zzy-search</module>
         <module>zzy-auth_server</module>
         <module>zzy-cart</module>
+        <module>zzy-seckill</module>
     </modules>
 
 

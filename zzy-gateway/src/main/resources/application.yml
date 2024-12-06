@@ -27,6 +27,12 @@ spring:
             - Path=/app/ware/**
           filters:
             - StripPrefix=1
+        - id: coupon-route
+          uri: lb://zzy-coupon
+          predicates:
+            - Path=/app/coupon/**
+          filters:
+            - StripPrefix=1
         - id: app-route
           uri: lb://renren-fast
           predicates:
@@ -54,6 +60,10 @@ spring:
           uri: lb://zzy-order
           predicates:
             - Host=**.order.zzy.com
+        - id: zzy-seckill-route
+          uri: lb://zzy-seckill
+          predicates:
+            - Host=**.seckill.zzy.com
   application:
     name: zzy-gateway
 

@@ -1,9 +1,13 @@
 package com.zzy.mall.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.zzy.mall.common.utils.R;
 import com.zzy.mall.product.entity.*;
+import com.zzy.mall.product.feign.SeckillFeignService;
 import com.zzy.mall.product.service.*;
 import com.zzy.mall.product.vo.ItemVO;
 import com.zzy.mall.product.vo.OrderItemSpuInfoVO;
+import com.zzy.mall.product.vo.SeckillVO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,9 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
 
     @Autowired
     ThreadPoolExecutor threadPoolExecutor;
+
+    @Autowired
+    SeckillFeignService seckillFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -175,7 +182,15 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
             }
         }, threadPoolExecutor);
 
-        CompletableFuture.allOf(saleFuture, spuFuture, groupFuture,imageFuture).get();
+        CompletableFuture<Void> seckillFuture = CompletableFuture.runAsync(() -> {
+            // 查询商品秒杀活动
+            R r = seckillFeignService.getSeckillSessionBySkuId(skuId);
+            String json = (String) r.get("data");
+            SeckillVO seckillVO = JSON.parseObject(json, SeckillVO.class);
+            itemVO.setSeckillVO(seckillVO);
+        }, threadPoolExecutor);
+
+        CompletableFuture.allOf(saleFuture, spuFuture, groupFuture,imageFuture,seckillFuture).get();
 
         return itemVO;
     }

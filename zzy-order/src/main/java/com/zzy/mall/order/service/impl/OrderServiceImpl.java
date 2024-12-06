@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.zzy.mall.common.constant.CartConstant;
 import com.zzy.mall.common.constant.OrderConstant;
+import com.zzy.mall.common.dto.SeckillOrderDTO;
 import com.zzy.mall.common.exception.BizCodeEnume;
 import com.zzy.mall.common.exception.NoStockException;
 import com.zzy.mall.common.exception.RepeatSubmitException;
@@ -209,6 +210,24 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         removeCart(orderSn);
         // 4.更新会员积分....
 
+    }
+
+    @Transactional
+    @Override
+    public void qiuckCreateOrder(SeckillOrderDTO seckillOrderDTO) {
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderSn(seckillOrderDTO.getOrderSn());
+        orderEntity.setStatus(OrderConstant.OrderStatusEnum.WAIT_FOR_PAYMENT.getCode());
+        orderEntity.setTotalAmount(seckillOrderDTO.getSeckillPrice().multiply(new BigDecimal(seckillOrderDTO.getNum())));
+        orderEntity.setMemberId(seckillOrderDTO.getMemberId());
+        this.save(orderEntity);
+        OrderItemEntity orderItemEntity = new OrderItemEntity();
+        orderItemEntity.setOrderSn(seckillOrderDTO.getOrderSn());
+        orderItemEntity.setSkuId(Long.parseLong(seckillOrderDTO.getSkuId()));
+        orderItemEntity.setSkuPrice(seckillOrderDTO.getSeckillPrice());
+        orderItemEntity.setSkuQuantity(seckillOrderDTO.getNum());
+        orderItemEntity.setRealAmount(seckillOrderDTO.getSeckillPrice().multiply(new BigDecimal(seckillOrderDTO.getNum())));
+        orderItemService.save(orderItemEntity);
     }
 
     private void removeCart(String orderSn) {

@@ -1,6 +1,7 @@
 package com.zzy.mall.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zzy.mall.common.dto.SeckillOrderDTO;
 import com.zzy.mall.common.exception.NoStockException;
 import com.zzy.mall.common.exception.RepeatSubmitException;
 import com.zzy.mall.common.utils.PageUtils;
@@ -33,5 +34,8 @@ public interface OrderService extends IService<OrderEntity> {
     void updateOrderStatus(String orderSn, Integer status);
 
     void handleOrderComplete(String orderSn);
+
+    void qiuckCreateOrder(SeckillOrderDTO seckillOrderDTO);
+
 }
 

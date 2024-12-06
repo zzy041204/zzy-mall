@@ -1,0 +1,33 @@
+# 数据库的连接信息
+spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://192.168.56.100:3306/mall-pms
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  application:
+    name: zzy-seckill
+  redis:
+    host: 192.168.56.100
+    port: 6379
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 20
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session
+  thymeleaf:
+    cache: false
+
+server:
+  port: 9600
+
+rocketmq:
+  name-server: 192.168.56.100:9876
+  producer:
+    group: seckill-producer-group
+  consumer:
+    group: seckill-consumer-group
