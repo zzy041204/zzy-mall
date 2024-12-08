@@ -7,6 +7,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   application:
     name: zzy-member
+  cloud:
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 192.168.56.100:8858
+        client-ip: 192.168.146.1
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -16,3 +22,9 @@ mybatis-plus:
 
 server:
   port: 8020
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

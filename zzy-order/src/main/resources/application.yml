@@ -11,6 +11,11 @@ spring:
     #alibaba:
     #  seata:
     #    tx-service-group: mall_order_group
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 192.168.56.100:8858
+        client-ip: 192.168.146.1
   application:
     name: zzy-order
   redis:
@@ -46,3 +51,9 @@ rocketmq:
     group: order-producer-group
   consumer:
     group: order-consumer-group
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

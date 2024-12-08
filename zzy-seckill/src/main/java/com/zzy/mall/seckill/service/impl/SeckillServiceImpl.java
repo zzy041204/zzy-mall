@@ -1,5 +1,9 @@
 package com.zzy.mall.seckill.service.impl;
 
+import com.alibaba.csp.sentinel.Entry;
+import com.alibaba.csp.sentinel.SphU;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.zzy.mall.common.constant.OrderConstant;
 import com.zzy.mall.common.constant.SeckillConstant;
@@ -17,6 +21,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
@@ -34,6 +40,7 @@ import java.util.stream.Collectors;
 @Service
 public class SeckillServiceImpl implements SeckillService {
 
+    private static final Logger log = LoggerFactory.getLogger(SeckillServiceImpl.class);
     @Autowired
     CouponFeignService couponFeignService;
 
@@ -66,35 +73,46 @@ public class SeckillServiceImpl implements SeckillService {
         }
     }
 
+    public List<SeckillSkuRedisDTO> blockHandlerGetCurrentSeckillSkus(BlockException ex){
+        log.error("限流执行的blockHandler{}",ex.getMessage());
+        return null;
+    }
+
     /**
      * 获取当前时间段的秒杀活动及对应的商品SKU信息
      * @return
      */
+    @SentinelResource(value = "getCurrentSeckillSkusResources",blockHandler = "blockHandlerGetCurrentSeckillSkus")
     @Override
     public List<SeckillSkuRedisDTO> getCurrentSeckillSkus() {
-        // 1.确定当前时间属于哪个秒杀活动的
-        long time = new Date().getTime();
-        // 从redis中查询所有的秒杀活动
-        Set<String> keys = stringRedisTemplate.keys(SeckillConstant.SESSION_CACHE_PREFIX + "*");
-        for (String key : keys) {
-            String replace = key.replace(SeckillConstant.SESSION_CACHE_PREFIX, "");
-            String[] s = replace.split("_");
-            Long start = Long.parseLong(s[0]);
-            Long end = Long.parseLong(s[1]);
-            if (time > start && time < end) {
-                // 当前的秒杀活动就是当前时间需要参与的活动
-                List<String> range = stringRedisTemplate.opsForList().range(key, -100, 100);
-                // 取出来的是skuId 1_6
-                BoundHashOperations<String, String, String> ops = stringRedisTemplate.boundHashOps(SeckillConstant.SKU_CACHE_PREFIX);
-                List<SeckillSkuRedisDTO> seckillSkuRedisDTOS = range.stream().map(item -> {
-                    String json = ops.get(item);
-                    SeckillSkuRedisDTO seckillSkuRedisDTO = JSON.parseObject(json, SeckillSkuRedisDTO.class);
-                    return seckillSkuRedisDTO;
-                }).collect(Collectors.toList());
-                return seckillSkuRedisDTOS;
+        try (Entry entry = SphU.entry("getCurrentSeckillSkus")){
+            // 1.确定当前时间属于哪个秒杀活动的
+            long time = new Date().getTime();
+            // 从redis中查询所有的秒杀活动
+            Set<String> keys = stringRedisTemplate.keys(SeckillConstant.SESSION_CACHE_PREFIX + "*");
+            for (String key : keys) {
+                String replace = key.replace(SeckillConstant.SESSION_CACHE_PREFIX, "");
+                String[] s = replace.split("_");
+                Long start = Long.parseLong(s[0]);
+                Long end = Long.parseLong(s[1]);
+                if (time > start && time < end) {
+                    // 当前的秒杀活动就是当前时间需要参与的活动
+                    List<String> range = stringRedisTemplate.opsForList().range(key, -100, 100);
+                    // 取出来的是skuId 1_6
+                    BoundHashOperations<String, String, String> ops = stringRedisTemplate.boundHashOps(SeckillConstant.SKU_CACHE_PREFIX);
+                    List<SeckillSkuRedisDTO> seckillSkuRedisDTOS = range.stream().map(item -> {
+                        String json = ops.get(item);
+                        SeckillSkuRedisDTO seckillSkuRedisDTO = JSON.parseObject(json, SeckillSkuRedisDTO.class);
+                        return seckillSkuRedisDTO;
+                    }).collect(Collectors.toList());
+                    return seckillSkuRedisDTOS;
+                }
             }
+            return null;
+        }catch (BlockException ex){
+            log.error("getCurrentSeckillSkus被限制访问了...");
+            return null;
         }
-        return null;
     }
 
     @Override

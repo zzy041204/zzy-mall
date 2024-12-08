@@ -11,6 +11,11 @@ spring:
       secret-key: zS2RNYlJpjs8tI0kQX3pkITZ3vwFx9
       oss:
         endpoint: oss-cn-wuhan-lr.aliyuncs.com
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 192.168.56.100:8858
+
   application:
     name: zzy-product
   # 设置服务器响应给客户端的日期时间格式
@@ -48,3 +53,12 @@ mybatis-plus:
 
 server:
   port: 8040
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+feign:
+  sentinel:
+    enabled: true

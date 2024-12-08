@@ -185,9 +185,11 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         CompletableFuture<Void> seckillFuture = CompletableFuture.runAsync(() -> {
             // 查询商品秒杀活动
             R r = seckillFeignService.getSeckillSessionBySkuId(skuId);
-            String json = (String) r.get("data");
-            SeckillVO seckillVO = JSON.parseObject(json, SeckillVO.class);
-            itemVO.setSeckillVO(seckillVO);
+            if (r.getCode() == 0){
+                String json = (String) r.get("data");
+                SeckillVO seckillVO = JSON.parseObject(json, SeckillVO.class);
+                itemVO.setSeckillVO(seckillVO);
+            }
         }, threadPoolExecutor);
 
         CompletableFuture.allOf(saleFuture, spuFuture, groupFuture,imageFuture,seckillFuture).get();

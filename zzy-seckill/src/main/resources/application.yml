@@ -21,6 +21,12 @@ spring:
       namespace: spring:session
   thymeleaf:
     cache: false
+  cloud:
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 192.168.56.100:8858
+        client-ip: 192.168.146.1
 
 server:
   port: 9600
@@ -31,3 +37,11 @@ rocketmq:
     group: seckill-producer-group
   consumer:
     group: seckill-consumer-group
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+

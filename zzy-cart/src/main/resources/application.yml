@@ -16,6 +16,18 @@ spring:
     timeout: 30m
     redis:
       namespace: spring:session
+  cloud:
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 192.168.56.100:8858
+        client-ip: 192.168.146.1
 
 server:
   port: 40000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

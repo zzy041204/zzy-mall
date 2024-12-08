@@ -1,5 +1,6 @@
 package com.zzy.mall.seckill.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.fastjson.JSON;
 import com.zzy.mall.common.utils.R;
 import com.zzy.mall.seckill.dto.SeckillSkuRedisDTO;
@@ -28,7 +29,7 @@ public class SeckillController {
     @GetMapping("/seckillSessionBySkuId")
     @ResponseBody
     public R getSeckillSessionBySkuId(@RequestParam("skuId") Long skuId){
-         SeckillSkuRedisDTO dto = seckillService.getSeckillSessionBySkuId(skuId);
+        SeckillSkuRedisDTO dto = seckillService.getSeckillSessionBySkuId(skuId);
         return R.ok().put("data",JSON.toJSONString(dto));
     }
 
